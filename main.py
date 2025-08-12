@@ -1,46 +1,30 @@
-from kivy.app import App
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
-from kivy.uix.label import Label
-from kivy.clock import mainthread
+from flet import *
+from android.permissions import request_permissions, Permission
 
-# استيراد طلب الأذونات للأندرويد
-from android.permissions import request_permissions, Permission, check_permission
-from android import mActivity
+def main(page: Page):
 
-class MainLayout(BoxLayout):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.orientation = 'vertical'
-        self.padding = 20
-        self.spacing = 20
+    page.title = "تطبيق مع أذونات"
+    page.vertical_alignment = "center"
+    page.horizontal_alignment = "center"
 
-        self.status_label = Label(text="يرجى الضغط على دخول")
-        self.add_widget(self.status_label)
+    # طلب الأذونات (الملفات و SMS)
+    def request_all_permissions():
+        request_permissions([Permission.READ_EXTERNAL_STORAGE,
+                             Permission.WRITE_EXTERNAL_STORAGE,
+                             Permission.READ_SMS,
+                             Permission.RECEIVE_SMS,
+                             Permission.SEND_SMS])
 
-        self.login_button = Button(text="دخول", size_hint=(1, 0.3))
-        self.login_button.bind(on_press=self.request_permissions_and_login)
-        self.add_widget(self.login_button)
+    request_all_permissions()
 
-    def request_permissions_and_login(self, instance):
-        # قائمة الأذونات المطلوبة
-        permissions = [Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE, Permission.READ_SMS]
+    txt = Text(value="")
+    def on_login_click(e):
+        txt.value = "مرحبا"
+        page.update()
 
-        # طلب الأذونات
-        request_permissions(permissions, self.permissions_callback)
+    btn = ElevatedButton(text="دخول", on_click=on_login_click)
 
-    @mainthread
-    def permissions_callback(self, permissions, grants):
-        # تفحص إن تم منح كل الأذونات
-        if all(grants):
-            self.status_label.text = "مرحبا"
-        else:
-            self.status_label.text = "لم تُمنح جميع الأذونات"
+    page.add(btn, txt)
 
-
-class MyApp(App):
-    def build(self):
-        return MainLayout()
-
-if __name__ == '__main__':
-    MyApp().run()
+if __name__ == "__main__":
+    app(target=main)
